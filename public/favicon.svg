@@ -1,0 +1,202 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Background Gradient: Deep Emerald to Rich Royal Teal -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#064e3b" />
+      <stop offset="45%" stop-color="#047857" />
+      <stop offset="100%" stop-color="#062e24" />
+    </linearGradient>
+
+    <!-- Warm Gold Gradient for Accents and Ribbon -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#b45309" />
+    </linearGradient>
+
+    <!-- Page Highlights -->
+    <linearGradient id="rightPageGrad" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="85%" stop-color="#fdfbf7" />
+      <stop offset="100%" stop-color="#e2d9cc" />
+    </linearGradient>
+
+    <linearGradient id="leftPageGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="85%" stop-color="#fdfbf7" />
+      <stop offset="100%" stop-color="#e2d9cc" />
+    </linearGradient>
+
+    <!-- Book Cover Base Gradient -->
+    <linearGradient id="coverGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#022c22" />
+      <stop offset="50%" stop-color="#0f766e" />
+      <stop offset="100%" stop-color="#022c22" />
+    </linearGradient>
+
+    <!-- Soft Glow Filter -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+
+    <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#000000" flood-opacity="0.45" />
+    </filter>
+  </defs>
+
+  <!-- App Icon Base: Modern Rounded Square for iOS / Android / Desktop -->
+  <rect width="512" height="512" rx="120" fill="url(#bgGrad)" />
+
+  <!-- Subtle Elegant Islamic Border / Arch Line (No star) -->
+  <rect x="24" y="24" width="464" height="464" rx="100" fill="none" stroke="url(#goldGrad)" stroke-width="3" opacity="0.35" />
+  <circle cx="256" cy="220" r="190" fill="none" stroke="#34d399" stroke-width="1.5" opacity="0.18" />
+
+  <!-- Radial Celestial Glow behind the Book (Noor / Light of Knowledge) -->
+  <circle cx="256" cy="180" r="120" fill="#fef08a" opacity="0.12" filter="url(#glow)" />
+  <circle cx="256" cy="190" r="70" fill="#34d399" opacity="0.15" filter="url(#glow)" />
+
+  <!-- The Open Arabic Book (كتاب مفتوح من المنتصف) -->
+  <g filter="url(#dropShadow)">
+    <!-- 1. Outer Book Cover (Hardcover Edge under the pages) -->
+    <path
+      d="M 256 312
+         C 210 292, 100 295, 48 316
+         C 44 240, 48 160, 56 128
+         C 110 112, 210 114, 256 138
+         C 302 114, 402 112, 456 128
+         C 464 160, 468 240, 464 316
+         C 412 295, 302 292, 256 312 Z"
+      fill="url(#coverGrad)"
+      stroke="url(#goldGrad)"
+      stroke-width="3.5"
+    />
+
+    <!-- 2. Underlying Layered Page Edges (Gives thick book realism) -->
+    <path
+      d="M 256 302
+         C 214 284, 110 286, 60 306
+         C 56 235, 60 162, 66 134
+         C 118 120, 212 122, 256 144
+         C 300 122, 394 120, 446 134
+         C 452 162, 456 235, 452 306
+         C 402 286, 298 284, 256 302 Z"
+      fill="#e5dec9"
+      opacity="0.9"
+    />
+
+    <!-- 3. Right Open Page (الصفحة اليمنى المفتوحة) -->
+    <path
+      d="M 256 142
+         C 300 124, 392 122, 442 136
+         C 447 190, 447 250, 442 296
+         C 394 280, 298 278, 256 295
+         Z"
+      fill="url(#rightPageGrad)"
+    />
+
+    <!-- 4. Left Open Page (الصفحة اليسرى المفتوحة) -->
+    <path
+      d="M 256 142
+         C 212 124, 120 122, 70 136
+         C 65 190, 65 250, 70 296
+         C 118 280, 214 278, 256 295
+         Z"
+      fill="url(#leftPageGrad)"
+    />
+
+    <!-- Center Book Spine Valley (تدرج المنتصف لثنية الكتاب) -->
+    <path d="M 256 142 L 256 297" stroke="#b39d82" stroke-width="4.5" stroke-linecap="round" />
+    <path d="M 256 144 L 256 295" stroke="#4a3728" stroke-width="1.5" stroke-linecap="round" opacity="0.6" />
+
+    <!-- Page Header Decorative Lines (لمسة تصميم عربية تعليمية) -->
+    <path d="M 275 160 C 320 150, 390 152, 420 160" stroke="#d97706" stroke-width="1.5" stroke-linecap="round" opacity="0.4" />
+    <path d="M 237 160 C 192 150, 122 152, 92 160" stroke="#d97706" stroke-width="1.5" stroke-linecap="round" opacity="0.4" />
+
+    <!-- Golden Bookmark Ribbon at the Bottom Spine (شريط الفاصل المذهب) -->
+    <path
+      d="M 250 295
+         C 250 325, 246 345, 240 365
+         L 256 355
+         L 272 365
+         C 266 345, 262 325, 262 295
+         Z"
+      fill="url(#goldGrad)"
+      filter="url(#dropShadow)"
+    />
+  </g>
+
+  <!-- ============================================== -->
+  <!-- The Arabic Letters (الحروف العربية: أ  ب  ت  ث) -->
+  <!-- ============================================== -->
+  <!-- Right Page (Beginning of Arabic reading): أ  ب -->
+  <!-- Left Page: ت  ث -->
+  <g font-family="'Cairo', 'Tajawal', 'Traditional Arabic', 'Amiri', serif" font-weight="900" text-anchor="middle">
+    <!-- Right Page: Letter «أ» (Alif with Hamza) -->
+    <g transform="translate(390, 235)">
+      <!-- Soft letter shadow -->
+      <text x="1" y="2" font-size="64" fill="#064e3b" opacity="0.25">أ</text>
+      <!-- Main Letter -->
+      <text x="0" y="0" font-size="64" fill="#064e3b">أ</text>
+    </g>
+
+    <!-- Right Page: Letter «ب» (Baa with dot below) -->
+    <g transform="translate(305, 238)">
+      <text x="1" y="2" font-size="64" fill="#047857" opacity="0.25">ب</text>
+      <text x="0" y="0" font-size="64" fill="#047857">ب</text>
+    </g>
+
+    <!-- Left Page: Letter «ت» (Taa with two dots above) -->
+    <g transform="translate(208, 238)">
+      <text x="1" y="2" font-size="64" fill="#047857" opacity="0.25">ت</text>
+      <text x="0" y="0" font-size="64" fill="#047857">ت</text>
+    </g>
+
+    <!-- Left Page: Letter «ث» (Thaa with three dots above) -->
+    <g transform="translate(122, 238)">
+      <text x="1" y="2" font-size="64" fill="#064e3b" opacity="0.25">ث</text>
+      <text x="0" y="0" font-size="64" fill="#064e3b">ث</text>
+    </g>
+  </g>
+
+  <!-- Elegant Golden Sunburst / Illumination rays emerging from the Book -->
+  <g stroke="url(#goldGrad)" stroke-width="2.5" stroke-linecap="round" opacity="0.75">
+    <line x1="256" y1="124" x2="256" y2="92" />
+    <line x1="232" y1="126" x2="220" y2="98" />
+    <line x1="280" y1="126" x2="292" y2="98" />
+    <line x1="210" y1="134" x2="190" y2="110" />
+    <line x1="302" y1="134" x2="322" y2="110" />
+  </g>
+
+  <!-- Small Glowing Pearl / Light Point over Spine -->
+  <circle cx="256" cy="118" r="6" fill="#fef08a" filter="url(#glow)" />
+
+  <!-- App Title: «نور البيان» in Beautiful Arabic Calligraphy Style -->
+  <g filter="url(#dropShadow)">
+    <text
+      x="256"
+      y="435"
+      font-family="'Cairo', 'Tajawal', sans-serif"
+      font-size="44"
+      font-weight="900"
+      fill="#ffffff"
+      text-anchor="middle"
+      letter-spacing="0.5"
+    >
+      نور البيان
+    </text>
+    <text
+      x="256"
+      y="468"
+      font-family="'Cairo', 'Tajawal', sans-serif"
+      font-size="15"
+      font-weight="700"
+      fill="#fde047"
+      text-anchor="middle"
+      letter-spacing="2"
+      opacity="0.95"
+    >
+      أ  ب  ت  ث
+    </text>
+  </g>
+</svg>

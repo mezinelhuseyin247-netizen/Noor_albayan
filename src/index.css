@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Cairo', 'Tajawal', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+}
+
+/* Islamic Geometric Backgrounds (Subtle, elegant, non-intrusive) */
+.bg-islamic-pattern {
+  background-color: #f8fafc;
+  background-image: radial-gradient(rgba(16, 185, 129, 0.05) 1px, transparent 1px),
+    radial-gradient(rgba(5, 150, 105, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: 0 0, 12px 12px;
+}
+
+.bg-islamic-stars {
+  background-color: #f8fafc;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l3.5 11.5L45 8l-3.5 11.5L53 23l-9.5 7.5L53 37l-11.5 3.5L45 52l-11.5-3.5L30 60l-3.5-11.5L15 52l3.5-11.5L7 37l9.5-7.5L7 23l11.5-3.5L15 8l11.5 3.5z' fill='%23059669' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+.bg-islamic-stars-dark {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l3.5 11.5L45 8l-3.5 11.5L53 23l-9.5 7.5L53 37l-11.5 3.5L45 52l-11.5-3.5L30 60l-3.5-11.5L15 52l3.5-11.5L7 37l9.5-7.5L7 23l11.5-3.5L15 8l11.5 3.5z' fill='%2334d399' fill-opacity='0.06' fill-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+/* Custom scrollbar for modern feel */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
