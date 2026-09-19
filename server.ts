@@ -19,7 +19,10 @@ import {
 
 const app = express();
 const PORT = 3000;
-
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 // High limits for base64 captured avatars, cover photos, and homework solution photos
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
