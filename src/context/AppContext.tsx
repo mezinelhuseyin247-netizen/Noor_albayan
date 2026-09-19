@@ -13,6 +13,404 @@ import {
   Exam,
   ExamSubmission,
 } from '../types';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import {
+  User,
+  ClassRoom,
+  Subject,
+  Lesson,
+  Assignment,
+  AssignmentSubmission,
+  LiveLesson,
+  StudentActivity,
+  NotificationItem,
+  WeeklyScheduleItem,
+  Exam,
+  ExamSubmission,
+} from '../types';
+import { supabase } from '../supabase';
+import {
+  INITIAL_USERS,
+  INITIAL_CLASSES,
+  INITIAL_SUBJECTS,
+  INITIAL_LESSONS,
+  INITIAL_ASSIGNMENTS,
+  INITIAL_SUBMISSIONS,
+  INITIAL_LIVE_LESSONS,
+  INITIAL_ACTIVITIES,
+  INITIAL_NOTIFICATIONS,
+  INITIAL_SCHEDULE,
+} from '../data/initialData';
+
+interface AppContextType {
+  currentUser: User | null;
+  users: User[];
+  students: User[];
+  allStudents?: User[];
+  teachers: User[];
+  classes: ClassRoom[];
+  subjects: Subject[];
+  lessons: Lesson[];
+  assignments: Assignment[];
+  submissions: AssignmentSubmission[];
+  liveLessons: LiveLesson[];
+  activities: StudentActivity[];
+  notifications: NotificationItem[];
+  weeklySchedule: WeeklyScheduleItem[];
+  exams: Exam[];
+  examSubmissions: ExamSubmission[];
+
+  // Online Cloud Sync Status
+  isOnlineSynced: boolean;
+  syncStatus: 'synced' | 'syncing' | 'offline';
+  lastSyncTimestamp: string;
+  forceServerSync: () => Promise<void>;
+  
+  // Auth
+  login: (username: string, password?: string) => Promise<{ success: boolean; error?: string }> | { success: boolean; error?: string };
+  registerTeacher: (data: { name: string; username: string; password: string; email?: string; phone?: string; specialty?: string }) => Promise<{ success: boolean; error?: string; user?: User }>;
+  requestPasswordReset: (email: string) => Promise<{ success: boolean; error?: string; message?: string; resetToken?: string; teacher?: { id: string; name: string; username: string; email?: string } }>;
+  resetPasswordWithToken: (token: string, newPassword: string, confirmPassword?: string) => Promise<{ success: boolean; error?: string; message?: string; username?: string }>;
+  logout: () => void;
+  quickSwitchUser: (userId: string) => void;
+  
+  // Student Management
+  addStudent: (data: Omit<User, 'id' | 'role' | 'isOnline' | 'isActive' | 'lastActive' | 'createdAt'> & { isActive?: boolean; teacherId?: string }) => { success: boolean; error?: string; student?: User };
+  updateStudent: (studentId: string, data: Partial<User>) => void;
+  toggleStudentStatus: (studentId: string) => void;
+  resetStudentPassword: (studentId: string, newPassword: string) => void;
+  deleteStudent: (studentId: string) => Promise<{ success: boolean; error?: string }>;
+  
+  // Class & Section Management
+  addClass: (data: Omit<ClassRoom, 'id'>) => ClassRoom;
+  updateClass: (classId: string, data: Partial<ClassRoom>) => void;
+  deleteClass: (classId: string) => void;
+  addSectionToClass: (classId: string, sectionName: string) => void;
+  
+  // Subjects & Lessons
+  addSubject: (data: Omit<Subject, 'id'>) => void;
+  addLesson: (data: Omit<Lesson, 'id' | 'createdAt'>) => void;
+  updateLesson: (lessonId: string, data: Partial<Lesson>) => void;
+  deleteLesson: (lessonId: string) => void;
+
+  // Weekly Schedule (البرنامج الأسبوعي)
+  addScheduleItem: (data: Omit<WeeklyScheduleItem, 'id' | 'createdAt'>) => void;
+  updateScheduleItem: (id: string, data: Partial<WeeklyScheduleItem>) => void;
+  deleteScheduleItem: (id: string) => void;
+  
+  // Assignments & Grading
+  createAssignment: (data: Omit<Assignment, 'id' | 'createdAt'>) => Promise<{ success: boolean; error?: string; assignment?: Assignment }>;
+  addAssignment: (data: Omit<Assignment, 'id' | 'createdAt'>) => Promise<{ success: boolean; error?: string; assignment?: Assignment }>;
+  publishAssignment: (assignmentId: string) => Promise<{ success: boolean; error?: string }>;
+  deleteAssignment: (assignmentId: string) => Promise<void>;
+  submitAssignment: (
+    assignmentId: string,
+    solutionText: string,
+    solutionImageUrl?: string,
+    solutionImages?: { id: string; name: string; url: string }[],
+    solutionFiles?: { id: string; name: string; url: string; size?: string; type?: string }[]
+  ) => Promise<void>;
+  gradeSubmission: (submissionId: string, score: number, teacherFeedback: string) => Promise<void>;
+  recordAssignmentOpen: (assignmentId: string) => void;
+  
+  // Exams (الامتحانات)
+  createExam: (data: Omit<Exam, 'id' | 'createdAt'>) => Promise<{ success: boolean; error?: string; exam?: Exam }>;
+  addExam: (data: Omit<Exam, 'id' | 'createdAt'>) => Promise<{ success: boolean; error?: string; exam?: Exam }>;
+  publishExam: (examId: string) => Promise<{ success: boolean; error?: string }>;
+  updateExam: (examId: string, data: Partial<Omit<Exam, 'id' | 'createdAt'>>) => Promise<{ success: boolean; error?: string }>;
+  deleteExam: (examId: string) => Promise<void>;
+  recordExamOpen: (examId: string) => void;
+  submitExamAnswer: (examId: string, answerImages: { id: string; name: string; url: string }[], studentNotes?: string) => Promise<void>;
+  gradeExamSubmission: (submissionId: string, score: number, teacherNotes?: string) => Promise<void>;
+
+  // Live Sessions
+  createLiveLesson: (data: Omit<LiveLesson, 'id'>) => Promise<{ success: boolean; error?: string; liveLesson?: LiveLesson }>;
+  addLiveLesson: (data: Omit<LiveLesson, 'id'>) => Promise<{ success: boolean; error?: string; liveLesson?: LiveLesson }>;
+  updateLiveLessonStatus: (id: string, status: LiveLesson['status']) => void;
+  deleteLiveLesson: (id: string) => void;
+  
+  // Notifications & Activities
+  logActivity: (type: StudentActivity['type'], details: string, relatedId?: string, targetStudentId?: string) => void;
+  markNotificationAsRead: (id: string) => void;
+  markAllNotificationsAsRead: () => void;
+  resetToDemoData: () => void;
+
+  // Feedback Toast
+  toastMessage: string | null;
+  showToast: (msg: string) => void;
+}
+
+const STORAGE_KEYS = {
+  USERS: 'noor_bayan_users_v2',
+  CLASSES: 'noor_bayan_classes_v2',
+  SUBJECTS: 'noor_bayan_subjects_v2',
+  LESSONS: 'noor_bayan_lessons_v2',
+  ASSIGNMENTS: 'noor_bayan_assignments_v2',
+  SUBMISSIONS: 'noor_bayan_submissions_v2',
+  LIVE_LESSONS: 'noor_bayan_live_v2',
+  ACTIVITIES: 'noor_bayan_activities_v2',
+  NOTIFICATIONS: 'noor_bayan_notifs_v2',
+  SCHEDULE: 'noor_bayan_schedule_v2',
+  EXAMS: 'noor_bayan_exams_v2',
+  EXAM_SUBMISSIONS: 'noor_bayan_exam_submissions_v2',
+  CURRENT_USER_ID: 'noor_bayan_curr_user_v2',
+};
+
+const AppContext = createContext<AppContextType | undefined>(undefined);
+
+function loadFromStorage<T>(key: string, fallback: T): T {
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function saveToStorage<T>(key: string, value: T): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (e) {
+    console.warn('Storage quota warning', e);
+  }
+}
+
+export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [users, setUsers] = useState<User[]>(() => loadFromStorage(STORAGE_KEYS.USERS, INITIAL_USERS));
+  const [classes, setClasses] = useState<ClassRoom[]>(() => loadFromStorage(STORAGE_KEYS.CLASSES, INITIAL_CLASSES));
+  const [subjects, setSubjects] = useState<Subject[]>(() => loadFromStorage(STORAGE_KEYS.SUBJECTS, INITIAL_SUBJECTS));
+  const [lessons, setLessons] = useState<Lesson[]>(() => loadFromStorage(STORAGE_KEYS.LESSONS, INITIAL_LESSONS));
+  const [assignments, setAssignments] = useState<Assignment[]>(() => loadFromStorage(STORAGE_KEYS.ASSIGNMENTS, INITIAL_ASSIGNMENTS));
+  const [submissions, setSubmissions] = useState<AssignmentSubmission[]>(() => loadFromStorage(STORAGE_KEYS.SUBMISSIONS, INITIAL_SUBMISSIONS));
+  const [liveLessons, setLiveLessons] = useState<LiveLesson[]>(() => loadFromStorage(STORAGE_KEYS.LIVE_LESSONS, INITIAL_LIVE_LESSONS));
+  const [activities, setActivities] = useState<StudentActivity[]>(() => loadFromStorage(STORAGE_KEYS.ACTIVITIES, INITIAL_ACTIVITIES));
+  const [notifications, setNotifications] = useState<NotificationItem[]>(() => loadFromStorage(STORAGE_KEYS.NOTIFICATIONS, INITIAL_NOTIFICATIONS));
+  const [weeklySchedule, setWeeklySchedule] = useState<WeeklyScheduleItem[]>(() => loadFromStorage(STORAGE_KEYS.SCHEDULE, INITIAL_SCHEDULE));
+  const [exams, setExams] = useState<Exam[]>(() => loadFromStorage(STORAGE_KEYS.EXAMS, []));
+  const [examSubmissions, setExamSubmissions] = useState<ExamSubmission[]>(() => loadFromStorage(STORAGE_KEYS.EXAM_SUBMISSIONS, []));
+
+  // Sync state trackers
+  const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'offline'>('synced');
+  const [isOnlineSynced, setIsOnlineSynced] = useState<boolean>(true);
+  const [lastSyncTimestamp, setLastSyncTimestamp] = useState<string>(() => new Date().toISOString());
+
+  // Current logged in user
+  const [currentUserId, setCurrentUserId] = useState<string | null>(() => {
+    return localStorage.getItem(STORAGE_KEYS.CURRENT_USER_ID) || 'teacher-1';
+  });
+
+  // Global Toast Message (e.g. "تم النشر بنجاح")
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = useCallback((msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage((curr) => (curr === msg ? null : curr));
+    }, 2800);
+  }, []);
+
+  const isInitialSyncDone = useRef(false);
+  const serverVersionRef = useRef<number>(0);
+  const localMutationPending = useRef(false);
+
+  // Sync state to local storage backup
+  useEffect(() => saveToStorage(STORAGE_KEYS.USERS, users), [users]);
+  useEffect(() => saveToStorage(STORAGE_KEYS.CLASSES, classes), [classes]);
+  useEffect(() => saveToStorage(STORAGE_KEYS.SUBJECTS, subjects), [subjects]);
+  useEffect(() => saveToStorage(STORAGE_KEYS.LESSONS, lessons), [lessons]);
+  useEffect(() => saveToStorage(STORAGE_KEYS.ASSIGNMENTS, assignments), [assignments]);
+  useEffect(() => saveToStorage(STORAGE_KEYS.SUBMISSIONS, submissions), [submissions]);
+  useEffect(() => saveToStorage(STORAGE_KEYS.LIVE_LESSONS, liveLessons), [liveLessons]);
+  useEffect(() => saveToStorage(STORAGE_KEYS.ACTIVITIES, activities), [activities]);
+  useEffect(() => saveToStorage(STORAGE_KEYS.NOTIFICATIONS, notifications), [notifications]);
+  useEffect(() => saveToStorage(STORAGE_KEYS.SCHEDULE, weeklySchedule), [weeklySchedule]);
+  useEffect(() => saveToStorage(STORAGE_KEYS.EXAMS, exams), [exams]);
+  useEffect(() => saveToStorage(STORAGE_KEYS.EXAM_SUBMISSIONS, examSubmissions), [examSubmissions]);
+
+  // Helper to push updates to server
+  const pushStateToServer = useCallback(async (payload: any) => {
+    try {
+      setSyncStatus('syncing');
+      const res = await fetch('/api/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.version) serverVersionRef.current = data.version;
+        setSyncStatus('synced');
+        setIsOnlineSynced(true);
+        setLastSyncTimestamp(new Date().toISOString());
+      } else {
+        setSyncStatus('offline');
+      }
+    } catch (err) {
+      console.warn('Network sync offline or degraded:', err);
+      setSyncStatus('offline');
+      setIsOnlineSynced(false);
+    }
+  }, []);
+
+  // Fetch complete state from online server (Multi-device live synchronization)
+  const fetchStateFromServer = useCallback(async (isInitial = false) => {
+    try {
+      const res = await fetch('/api/data', { cache: 'no-store' });
+      if (!res.ok) throw new Error('Server returned ' + res.status);
+      const data = await res.json();
+
+      if (data && data.version && data.version > serverVersionRef.current) {
+        serverVersionRef.current = data.version;
+
+        if (data.users) setUsers(data.users);
+        if (data.classes) setClasses(data.classes);
+        if (data.subjects) setSubjects(data.subjects);
+        if (data.lessons) setLessons(data.lessons);
+        if (data.assignments) setAssignments(data.assignments);
+        if (data.submissions) setSubmissions(data.submissions);
+        if (data.liveLessons) setLiveLessons(data.liveLessons);
+        if (data.activities) setActivities(data.activities);
+        if (data.notifications) setNotifications(data.notifications);
+        if (data.weeklySchedule) setWeeklySchedule(data.weeklySchedule);
+        if (data.exams) setExams(data.exams);
+        if (data.examSubmissions) setExamSubmissions(data.examSubmissions);
+
+        setSyncStatus('synced');
+        setIsOnlineSynced(true);
+        setLastSyncTimestamp(new Date().toISOString());
+      } else if (isInitial && data) {
+        if (data.users) setUsers(data.users);
+        if (data.classes) setClasses(data.classes);
+        if (data.subjects) setSubjects(data.subjects);
+        if (data.lessons) setLessons(data.lessons);
+        if (data.assignments) setAssignments(data.assignments);
+        if (data.submissions) setSubmissions(data.submissions);
+        if (data.liveLessons) setLiveLessons(data.liveLessons);
+        if (data.activities) setActivities(data.activities);
+        if (data.notifications) setNotifications(data.notifications);
+        if (data.weeklySchedule) setWeeklySchedule(data.weeklySchedule);
+        if (data.exams) setExams(data.exams);
+        if (data.examSubmissions) setExamSubmissions(data.examSubmissions);
+        if (data.version) serverVersionRef.current = data.version;
+
+        setSyncStatus('synced');
+        setIsOnlineSynced(true);
+      }
+    } catch (err) {
+      console.warn('Could not fetch server state:', err);
+      setSyncStatus('offline');
+      setIsOnlineSynced(false);
+    }
+  }, []);
+
+  // Initial load and periodic multi-client background polling
+  useEffect(() => {
+    fetchStateFromServer(true).then(() => {
+      isInitialSyncDone.current = true;
+    });
+
+    // Poll server every 3.5 seconds so changes from another phone/PC reflect live
+    const interval = setInterval(() => {
+      if (!localMutationPending.current) {
+        fetchStateFromServer(false);
+      }
+    }, 3500);
+
+    const onFocus = () => {
+      fetchStateFromServer(false);
+    };
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [fetchStateFromServer]);
+
+  const forceServerSync = async () => {
+    setSyncStatus('syncing');
+    await fetchStateFromServer(true);
+  };
+
+  const currentUser = users.find((u) => u.id === currentUserId) || null;
+  // Students permanently linked to the teacher who created them
+  // - A teacher only sees their own students (a new teacher begins with an empty student list)
+  // - A student only sees peer students under the same teacher
+  const students = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'teacher') {
+      return users.filter(
+        (u) => u.role === 'student' && (u.teacherId === currentUser.id || (!u.teacherId && currentUser.id === 'teacher-1'))
+      );
+    }
+    return users.filter(
+      (u) => u.role === 'student' && (!currentUser.teacherId || u.teacherId === currentUser.teacherId)
+    );
+  }, [users, currentUser]);
+
+  const allStudents = useMemo(() => users.filter((u) => u.role === 'student'), [users]);
+  const teachers = users.filter((u) => u.role === 'teacher');
+
+  // Log activity helper
+  const logActivity = useCallback((
+    type: StudentActivity['type'],
+    details: string,
+    relatedId?: string,
+    targetStudentId?: string
+  ) => {
+    const actStudentId = targetStudentId || (currentUser?.role === 'student' ? currentUser.id : null);
+    const targetUser = users.find(u => u.id === actStudentId);
+    
+    if (!actStudentId || !targetUser) return;
+
+    const newAct: StudentActivity = {
+      id: `act-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      studentId: actStudentId,
+      studentName: targetUser.name,
+      type,
+      details,
+      timestamp: new Date().toISOString(),
+      relatedId,
+    };
+
+    setActivities(prev => {
+      const next = [newAct, ...prev.slice(0, 150)];
+      pushStateToServer({ activities: next });
+      return next;
+    });
+
+    // Update user's lastActive timestamp & online status
+    setUsers(prev => {
+      const next = prev.map(u => {
+        if (u.id === actStudentId) {
+          return { ...u, isOnline: true, lastActive: new Date().toISOString() };
+        }
+        return u;
+      });
+      pushStateToServer({ users: next });
+      return next;
+    });
+  }, [currentUser, users, pushStateToServer]);
+
+  // Auth: Login via online server endpoint
+  const login = async (username: string, password?: string) => {
+    const trimmedUser = username.trim().toLowerCase();
+    
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: trimmedUser, password: password?.trim() }),
+      });
+      
+      const data = await res.json();
+      if (res.ok && data.success && data.user) {
+        // Sync local users
+        setUsers(prev => prev.map(u => u.id === data.user.id ? data.user : u));
+        setCurrentUserId(data.user.id);
+        localStorage.setItem(STORAGE_KEYS.CURRENT_USER_ID, data.user.id);
+        setSyncStatus('synced');
+
 import {
   INITIAL_USERS,
   INITIAL_CLASSES,
