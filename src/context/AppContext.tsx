@@ -181,7 +181,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Current logged in user
   const [currentUserId, setCurrentUserId] = useState<string | null>(() => {
-    return localStorage.getItem(STORAGE_KEYS.CURRENT_USER_ID) || 'teacher-1';
+    return localStorage.getItem(STORAGE_KEYS.CURRENT_USER_ID) || null;
   });
 
   // Global Toast Message (e.g. "تم النشر بنجاح")
