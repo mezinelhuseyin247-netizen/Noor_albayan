@@ -14,22 +14,6 @@ import {
   ExamSubmission,
 } from '../types';
 import { supabase } from '../supabase';
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import {
-  User,
-  ClassRoom,
-  Subject,
-  Lesson,
-  Assignment,
-  AssignmentSubmission,
-  LiveLesson,
-  StudentActivity,
-  NotificationItem,
-  WeeklyScheduleItem,
-  Exam,
-  ExamSubmission,
-} from '../types';
-import { supabase } from '../supabase';
 import {
   INITIAL_USERS,
   INITIAL_CLASSES,
@@ -559,7 +543,7 @@ function saveToStorage<T>(key: string, value: T): void {
 }
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [users, setUsers] = useState<User[]>(() => loadFromStorage(STORAGE_KEYS.USERS, INITIAL_USERS));
+  const [users, setUsers] = useState<User[]>([]);
   const [classes, setClasses] = useState<ClassRoom[]>(() => loadFromStorage(STORAGE_KEYS.CLASSES, INITIAL_CLASSES));
   const [subjects, setSubjects] = useState<Subject[]>(() => loadFromStorage(STORAGE_KEYS.SUBJECTS, INITIAL_SUBJECTS));
   const [lessons, setLessons] = useState<Lesson[]>(() => loadFromStorage(STORAGE_KEYS.LESSONS, INITIAL_LESSONS));
