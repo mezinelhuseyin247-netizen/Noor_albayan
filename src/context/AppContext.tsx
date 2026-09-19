@@ -1004,7 +1004,70 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Student CRUD (Teacher Only - permanently linked to creating teacher)
-  const addStudent = (data: Omit<User, 'id' | 'role' | 'isOnline' | 'isActive' | 'lastActive' | 'createdAt'> & { isActive?: boolean; teacherId?: string }) => {
+  const addStudent = async (
+  data: Omit<User, 'id' | 'role' | 'isOnline' | 'isActive' | 'lastActive' | 'createdAt'> & {
+    isActive?: boolean;
+    teacherId?: string;
+  }
+): Promise<{ success: boolean; error?: string; student?: User }> => {
+  try {
+    const teacherId = data.teacherId || currentUser?.id;
+
+    if (!teacherId) {
+      return { success: false, error: 'لم يتم تحديد المعلمة' };
+    }
+
+    const studentId = `student-${Date.now()}`;
+
+    const student: User = {
+      ...data,
+      id: studentId,
+      role: 'student',
+      teacherId,
+      isActive: data.isActive ?? true,
+      isOnline: false,
+      lastActive: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+    };
+
+    const response = await fetch('/api/students', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-teacher-id': teacherId,
+      },
+      body: JSON.stringify(student),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      return {
+        success: false,
+        error: result.error || 'تعذر إنشاء حساب الطالب',
+      };
+    }
+
+    const savedStudent = result.student || student;
+
+    setUsers(prev => {
+      const next = [...prev, savedStudent];
+      saveToStorage(STORAGE_KEYS.USERS, next);
+      return next;
+    });
+
+    return {
+      success: true,
+      student: savedStudent,
+    };
+  } catch (error) {
+    console.error('addStudent error:', error);
+    return {
+      success: false,
+      error: 'حدث خطأ أثناء إنشاء حساب الطالب',
+    };
+  }
+};
     const usernameClean = data.username.trim().toLowerCase();
     const existing = users.find(u => u.username.toLowerCase() === usernameClean);
     if (existing) {
