@@ -442,7 +442,7 @@ interface AppContextType {
   quickSwitchUser: (userId: string) => void;
   
   // Student Management
-  addStudent: (data: Omit<User, 'id' | 'role' | 'isOnline' | 'isActive' | 'lastActive' | 'createdAt'> & { isActive?: boolean; teacherId?: string }) => { success: boolean; error?: string; student?: User };
+  addStudent: (data: Omit<User, 'id' | 'role' | 'isOnline' | 'isActive' | 'lastActive' | 'createdAt'> & { isActive?: boolean; teacherId?: string }) => Promise<{ success: boolean; error?: string; student?: User }>;
   updateStudent: (studentId: string, data: Partial<User>) => void;
   toggleStudentStatus: (studentId: string) => void;
   resetStudentPassword: (studentId: string, newPassword: string) => void;
