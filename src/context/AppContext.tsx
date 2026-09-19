@@ -13,6 +13,7 @@ import {
   Exam,
   ExamSubmission,
 } from '../types';
+import { supabase } from '../supabase';
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   User,
